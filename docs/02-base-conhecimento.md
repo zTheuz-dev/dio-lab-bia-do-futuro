@@ -1,55 +1,71 @@
-# Base de Conhecimento
+# 📚 Base de Conhecimento
 
 ## Dados Utilizados
 
-Descreva se usou os arquivos da pasta `data`, por exemplo:
+O agente utiliza apenas os dados essenciais para identificar inadimplência e calcular valores em atraso.
 
-| Arquivo | Formato | Utilização no Agente |
-|---------|---------|---------------------|
-| `historico_atendimento.csv` | CSV | Contextualizar interações anteriores |
-| `perfil_investidor.json` | JSON | Personalizar recomendações |
-| `produtos_financeiros.json` | JSON | Sugerir produtos adequados ao perfil |
-| `transacoes.csv` | CSV | Analisar padrão de gastos do cliente |
+| Arquivo          | Formato | Utilização no Agente                    |
+| ---------------- | ------- | --------------------------------------- |
+| `clientes.csv`   | CSV     | Nome, CNPJ e contato do cliente         |
+| `contratos.csv`  | CSV     | Valor mensal e data de vencimento       |
+| `financeiro.csv` | CSV     | Status do pagamento (Pago ou Em Aberto) |
+| `regras.json`    | JSON    | Percentual de multa e juros             |
 
-> [!TIP]
-> **Quer um dataset mais robusto?** Você pode utilizar datasets públicos do [Hugging Face](https://huggingface.co/datasets) relacionados a finanças, desde que sejam adequados ao contexto do desafio.
-
----
 
 ## Adaptações nos Dados
 
-> Você modificou ou expandiu os dados mockados? Descreva aqui.
+Foram feitas adaptações simples:
 
-[Sua descrição aqui]
+* Inclusão do campo **status_pagamento** (Pago / Em Aberto)
+* Padronização das datas
+* Inclusão do tipo de contrato **"Contrato Completo"**
+* Cálculo automático de dias de atraso (sem salvar no banco)
 
----
+O agente não armazena cálculos — ele apenas calcula quando solicitado.
 
 ## Estratégia de Integração
 
 ### Como os dados são carregados?
-> Descreva como seu agente acessa a base de conhecimento.
 
-[ex: Os JSON/CSV são carregados no início da sessão e incluídos no contexto do prompt]
+Os arquivos CSV e JSON são carregados no início do sistema.
+
+Quando o usuário consulta um cliente, o sistema:
+
+1. Busca os dados do cliente
+2. Verifica se está "Em Aberto"
+3. Calcula dias de atraso
+4. Aplica multa e juros
+
 
 ### Como os dados são usados no prompt?
-> Os dados vão no system prompt? São consultados dinamicamente?
 
-[Sua descrição aqui]
+Apenas os dados do cliente consultado são enviados ao modelo.
 
----
+As regras de multa e juros ficam fixas no system prompt.
 
-## Exemplo de Contexto Montado
+Exemplo de instrução fixa:
 
-> Mostre um exemplo de como os dados são formatados para o agente.
+> "Se estiver em atraso, aplicar multa de 2% + juros de 0,03% ao dia."
 
+
+
+## Exemplo de Contexto Enviado ao Agente
+
+
+Cliente: Empresa XPTO
+Valor mensal: R$ 2.000,00
+Vencimento: 01/02/2026
+Status: Em Aberto
+Data atual: 20/02/2026
+
+Regras:
+Multa: 2%
+Juros: 0,03% ao dia
 ```
-Dados do Cliente:
-- Nome: João Silva
-- Perfil: Moderado
-- Saldo disponível: R$ 5.000
 
-Últimas transações:
-- 01/11: Supermercado - R$ 450
-- 03/11: Streaming - R$ 55
-...
-```
+O agente então responde:
+
+* Dias de atraso
+* Valor atualizado
+* Sugestão de cobrança
+
